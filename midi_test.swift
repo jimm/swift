@@ -24,9 +24,7 @@ func printEndpoint(deviceNumber: Int, endpointRef: MIDIEndpointRef) {
     if !strs[0].isEmpty {
         print("\(strs[0]), ", terminator:"")
     }
-    if !strs[1].isEmpty {
-        print("\(strs[1]) ", terminator:"")
-    }
+    print("\(strs[1]) ", terminator:"")
     if !strs[2].isEmpty {
         print("(\(strs[2]))", terminator:"")
     }
