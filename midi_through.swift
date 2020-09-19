@@ -3,17 +3,32 @@
 import Foundation
 import CoreMIDI
 
-func unbridgeMutable<T : AnyObject>(ptr : UnsafeMutablePointer<Void>) -> T {
-    return Unmanaged<T>.fromOpaque(COpaquePointer(ptr)).takeUnretainedValue()
+class Synth {
+    let inPort: MIDIEndpointRef
+    let outPort: MIDIEndpointRef
+
+    init(inputPort: MIDIEndpointRef, outputPort: MIDIEndpointRef) {
+        inPort = inputPort
+        outPort = outputPort
+    }
+}
+
+func unbridgeMutable<T : AnyObject>(ptr: UnsafeMutableRawPointer) -> T {
+    return Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
 }
 
 func MyMIDIReadProc(packetList: UnsafePointer<MIDIPacketList>,
-                    refCon:UnsafeMutablePointer<Void>) {
-    var packetList = np.memory
-    let outRef: MIDIEndpointRef = unbridgeMutable(refCon)
-    for packet in packetList.packets:
-          for b in packet.data:
-    kronos.receiveMIDI(packetList)
+                    refCon:UnsafeMutableRawPointer) {
+    var synth: Synth = unbridgeMutable(ptr: refCon)
+    var packet: UnsafeMutablePointer<MIDIPacket> = packetList.pointee.packet
+    for i in 0..<packetList.pointee.numPackets {
+        let bytes = [UInt8](UnsafeBufferPointer(start: &packet.data.0, count: MemoryLayout.size(ofValue: packet.data)))
+        for byte in bytes {
+            // TODO
+        }
+        packet = MIDIPacketNext(packet)
+    }
+    synth.receiveMIDI(packetList)
 }
 
 class Main {
@@ -62,7 +77,7 @@ class Main {
 
         s = "MIDI Through Input"
         err = MIDIInputPortCreate(
-          myClientRef, s, MIDIReadProc(COpaquePointer([MyMIDIReadProc])), self.kronos, &self.myInPort
+          myClientRef, s, MIDIReadProc(COpaquePointer([MyMIDIReadProc])), &self.synth, &self.myInPort
         )
         if err != 0 {
             print("MIDIInputPortCreate error: \(err)")
