@@ -1,3 +1,5 @@
+#!/usr/bin/env swift
+
 import CoreMIDI
 
 func getStringProperty(propertyName: CFString, midiObject: MIDIObjectRef) -> String {
@@ -17,18 +19,10 @@ func getStringProperty(propertyName: CFString, midiObject: MIDIObjectRef) -> Str
 }
 
 func printEndpoint(deviceNumber: Int, endpointRef: MIDIEndpointRef) {
-    let strs = [kMIDIPropertyModel, kMIDIPropertyName, kMIDIPropertyManufacturer].map {
-        getStringProperty(propertyName: $0, midiObject: endpointRef)
-    }
-    print(NSString(format:"%3ld: ", deviceNumber), terminator:"")
-    if !strs[0].isEmpty {
-        print("\(strs[0]), ", terminator:"")
-    }
-    print("\(strs[1]) ", terminator:"")
-    if !strs[2].isEmpty {
-        print("(\(strs[2]))", terminator:"")
-    }
-    print("")
+    print(NSString(format:"%3ld: ", deviceNumber), terminator: "")
+    let name = getStringProperty(propertyName: kMIDIPropertyName, midiObject: endpointRef)
+    let displayName = getStringProperty(propertyName: kMIDIPropertyDisplayName, midiObject: endpointRef)
+    print("\(name), \(displayName)")
 }
 
 func printEndpoints(title: String, counter: ()->Int, getter: (Int)->MIDIEndpointRef) {
